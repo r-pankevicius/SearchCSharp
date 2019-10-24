@@ -11,7 +11,7 @@ namespace SearchCSharp
 	{
 		int _foundMatches;
 		SyntaxTree _tree;
-		Func<string, bool> _matchPredicate;
+		readonly Func<string, bool> _matchPredicate;
 
 		public CSharpStringSearcher(Func<string, bool> matchPredicate)
 		{
