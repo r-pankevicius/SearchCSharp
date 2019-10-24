@@ -1,17 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SearchCSharp
 {
 	class Program
 	{
-		static void Main(string[] args)
+		static int Main(string[] args)
 		{
+			// Folder to search from
+			string rootFolder = ".";
+
 			// param[0]: string to search
 			string searchFor = null;
+
 			if (args.Length >= 1)
 			{
 				searchFor = args[0];
+			}
+
+			// param[1]: folder to search in
+			if (args.Length >= 2)
+			{
+				rootFolder = args[1];
+			}
+
+			if (args.Length >= 3)
+			{
+				PrintUsage();
+				return 1;
 			}
 
 			// should-be-param: Ignore *.designer.cs files when searching
@@ -35,8 +52,6 @@ namespace SearchCSharp
 				}
 			}
 
-			// should-be-param: Folder to search from (recursively, yet another should-be-param)
-			string rootFolder = ".";
 
 			Console.WriteLine($"Searching for strings {searchFor} in .cs files starting from folder {rootFolder}");
 
@@ -45,9 +60,22 @@ namespace SearchCSharp
 
 			var walker = new CSharpStringSearcher(matchString);
 
-			foreach (string filePath in Directory.EnumerateFiles(rootFolder, "*.cs", SearchOption.AllDirectories))
+			IEnumerable<string> allFiles;
+
+			try
 			{
-				if (ignoreDesignerFiles && Path.GetFileName(filePath).ToLower().EndsWith(".designer.cs"))
+				allFiles = Directory.EnumerateFiles(rootFolder, "*.cs", SearchOption.AllDirectories);
+			}
+			catch (DirectoryNotFoundException ex)
+			{
+				Console.WriteLine($"Directory not found: {ex.Message}");
+				return 2;
+			}
+
+			foreach (string filePath in allFiles)
+			{
+				if (ignoreDesignerFiles &&
+					Path.GetFileName(filePath).EndsWith(".designer.cs", StringComparison.OrdinalIgnoreCase))
 				{
 					continue;
 				}
@@ -57,6 +85,14 @@ namespace SearchCSharp
 			}
 
 			Console.WriteLine($"Processed {numOfFilesParsed} files, found {numStringsFound} matching strings.");
+
+			return 0;
+		}
+
+		static void PrintUsage()
+		{
+			Console.WriteLine("Usage:");
+			Console.WriteLine("SearchCSharp string-to-search [folder-to-search]");
 		}
 	}
 }

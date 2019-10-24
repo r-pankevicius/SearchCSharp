@@ -53,18 +53,18 @@ namespace SearchCSharp
 
 		#region Implementation
 
-		private void TryCapture(CSharpSyntaxNode node)
+		void TryCapture(CSharpSyntaxNode node)
 		{
 			string nodeString = node.ToString();
 			if (_matchPredicate(nodeString))
 			{
 				FileLinePositionSpan pos = _tree.GetLineSpan(node.Span);
-				Console.WriteLine($"{pos.Path}({pos.StartLinePosition}): {nodeString}");
+				ReportFoundString(nodeString, pos);
 				_foundMatches++;
 			}
 		}
 
-		private static SyntaxTree ParseFile(string path)
+		static SyntaxTree ParseFile(string path)
 		{
 			try
 			{
@@ -81,6 +81,12 @@ namespace SearchCSharp
 				Console.WriteLine(ex.Message);
 				return null;
 			}
+		}
+
+		static void ReportFoundString(string nodeString, FileLinePositionSpan pos)
+		{
+			int lineNumber = pos.StartLinePosition.Line + 1; // MS guys count lines from 0
+			Console.WriteLine($"{pos.Path}({lineNumber}): {nodeString}");
 		}
 
 		#endregion
